@@ -1,0 +1,38 @@
+{
+  "slug": "FikAudio",
+  "name": "Fik Audio",
+  "version": "2.1.0",
+  "license": "GPL-3.0-or-later",
+  "description": "Test plugin for RNBO template",
+  "brand": "Fik Audio",
+  "author": "fik",
+  "authorEmail": "",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "Paulstretch",
+      "name": "Paulstretch",
+      "description": "Extreme time-stretch of a recorded buffer (Paul's Extreme Sound Stretch)",
+      "tags": [
+        "Effect",
+        "Sampler",
+        "Recording"
+      ]
+    },
+    {
+      "slug": "PaulstretchHeads",
+      "name": "Paulstretch Heads",
+      "description": "Expander for Paulstretch: four more stretch heads on its buffer, each with its own stretch, pitch, start, freeze, reverse, scan and outputs; up to three can be chained",
+      "tags": [
+        "Effect",
+        "Expander",
+        "Sampler"
+      ]
+    }
+  ]
+}

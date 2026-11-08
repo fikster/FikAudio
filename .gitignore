@@ -1,0 +1,26 @@
+**/.DS_Store
+*.swp
+*.lock
+profile
+err.txt
+
+**/*.o
+**/*.so
+**/*.dylib
+**/*.zip
+**/*.vcvplugin
+**/dep
+**/build
+**/plugin.dylib
+**/tmp
+**/dist/*
+
+
+
+# local only: the template's RNBO demo and editor settings
+.vscode/
+readme.txt
+max/
+inc/
+src/Demo.cpp
+src/Demo-rnbo/
