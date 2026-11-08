@@ -35,7 +35,8 @@ Original to this plugin:
 
 Idea from paulstretch_cpp, written independently:
 - pitch shift by moving bin magnitudes. The implementation differs: one
-  path for both directions, rounded target bins, power summing.
+  path for both directions, each bin's power split between the two bins
+  either side of its target (T022), and power summing.
 
 Planned features whose ideas come from paulstretch_cpp: spread, harmonics,
 octave mixer (T011, T013, T014). Onset detection (T012) is in the
@@ -65,6 +66,11 @@ per-head SCAN and the expander displays were added:
 | PaulstretchCore.hpp vs paulstretch_cpp | 2.8% | 14.8% | 31 tokens |
 | PaulstretchCore.hpp vs Rack SDK DSP code (unrelated) | 1.5% | 8.3% | 28 tokens |
 | Every other plugin source vs paulstretch_cpp | 0.6% or less | 4.0% or less | 28 tokens |
+
+Rechecked again on 8 November 2026, after the pitch shift was changed to split
+each bin's power between neighbouring bins (T022): PaulstretchCore.hpp vs
+paulstretch_cpp 2.7% / 14.5% / 31 tokens; vs Rack SDK 1.5% / 8.1% / 28 tokens;
+every other source unchanged. No shared run touches the pitch-shift loop.
 
 Every shared fragment is a generic loop such as
 `for (int i = 0; i < n; i++) x[i] = …`, and the same shapes also match

@@ -15,7 +15,10 @@
 // per frame, so a stretch of 8 plays the source 8 times slower.
 //
 // Pitch shift: before the phases are randomised, the magnitude of bin k moves
-// to bin k * pitch. Bins that land together add in power, so the level holds.
+// to k * pitch. That usually falls between two bins, so its power is split
+// between them in proportion to how close each is: rounding to the nearest bin
+// instead puts small windows audibly out of tune (T022). Power that lands in
+// the same bin adds up, so the level holds.
 // The idea (not the code) comes from Paul's GPL C++ program; the Python
 // version has no pitch shift. Written independently: see PROVENANCE.md.
 //
@@ -205,8 +208,12 @@ struct PaulstretchCore {
                 float* shifted = shifted_.data();
                 std::fill(shifted, shifted + half + 1, 0.f);
                 for (int k = 0; k <= half; k++) {
-                    const long j = std::lround(k * pitch_);
-                    if (j <= half) shifted[j] += mag[k] * mag[k];
+                    const double x = k * pitch_;
+                    const long j = (long)x;
+                    if (j > half) break;
+                    const float frac = (float)(x - j), power = mag[k] * mag[k];
+                    shifted[j] += power * (1.f - frac);
+                    if (j < half) shifted[j + 1] += power * frac;
                 }
                 for (int k = 0; k <= half; k++) mag[k] = std::sqrt(shifted[k]);
             }
