@@ -165,7 +165,7 @@ struct Paulstretch : Module {
         // every voice does its frame work at its own moment (see PaulstretchCore)
         core.setSlot(0, paulstretch::HEADS + 1);
         for (int h = 0; h < paulstretch::HEADS; h++) {
-            heads[h].seed(0x51ed270b * (h + 2));
+            heads[h].seed(0x51ed270bu * uint32_t(h + 2));  // unsigned: wraps instead of overflowing
             heads[h].setSlot(h + 1, paulstretch::HEADS + 1);
         }
         rightExpander.producerMessage = new paulstretch::ToMain;
