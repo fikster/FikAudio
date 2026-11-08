@@ -1,5 +1,6 @@
 # Builds the plugin for every platform VCV Rack supports, on every push and
-# pull request. Each build's .vcvplugin is kept as a downloadable artifact of
+# pull request, natively with VCV's Rack SDK on GitHub's Linux, Windows and
+# Mac machines. Each build's .vcvplugin is kept as a downloadable artifact of
 # the run (for testers). Untagged builds get the commit added to their version,
 # e.g. 2.1.0-8ff5b05, so test builds can be told apart.
 #
@@ -20,41 +21,74 @@ permissions:
 
 env:
   rack-sdk-version: latest
-  rack-plugin-toolchain-dir: /home/build/rack-plugin-toolchain
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  build-win-lin:
-    name: ${{ matrix.platform }}
+  build-lin:
+    name: lin-x64
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/qno/rack-plugin-toolchain-win-linux:v2
-      options: --user root
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [win-x64, lin-x64]
     steps:
       - uses: actions/checkout@v4
       - name: Add the commit to the version (untagged builds)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           v="$(jq -r .version plugin.json)-$(git rev-parse --short HEAD)"
           jq --arg v "$v" '.version=$v' plugin.json > plugin.tmp && mv plugin.tmp plugin.json
           echo "version $v"
+      - name: Get the Rack SDK
+        run: |
+          sudo apt-get install -y zstd
+          cd "$HOME"
+          curl -sSfL -o Rack-SDK.zip https://vcvrack.com/downloads/Rack-SDK-${{ env.rack-sdk-version }}-lin-x64.zip
+          unzip -q Rack-SDK.zip
       - name: Build
         run: |
-          export PLUGIN_DIR="$GITHUB_WORKSPACE"
-          cd ${{ env.rack-plugin-toolchain-dir }}
-          make plugin-build-${{ matrix.platform }}
+          export RACK_DIR="$HOME/Rack-SDK"
+          make dep
+          make dist
       - uses: actions/upload-artifact@v4
         with:
-          name: FikAudio-${{ matrix.platform }}
-          path: ${{ env.rack-plugin-toolchain-dir }}/plugin-build/*.vcvplugin
+          name: FikAudio-lin-x64
+          path: dist/*.vcvplugin
+          if-no-files-found: error
+
+  build-win:
+    name: win-x64
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            git make zip unzip zstd jq
+            mingw-w64-x86_64-gcc
+      - name: Add the commit to the version (untagged builds)
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          v="$(jq -r .version plugin.json)-$(git rev-parse --short HEAD)"
+          jq --arg v "$v" '.version=$v' plugin.json > plugin.tmp && mv plugin.tmp plugin.json
+          echo "version $v"
+      - name: Get the Rack SDK
+        run: |
+          curl -sSfL -o /tmp/Rack-SDK.zip https://vcvrack.com/downloads/Rack-SDK-${{ env.rack-sdk-version }}-win-x64.zip
+          unzip -q /tmp/Rack-SDK.zip -d /tmp
+      - name: Build
+        run: |
+          export RACK_DIR=/tmp/Rack-SDK
+          make dep
+          make dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FikAudio-win-x64
+          path: dist/*.vcvplugin
           if-no-files-found: error
 
   build-mac:
@@ -92,7 +126,7 @@ jobs:
   publish:
     name: Pre-release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-win-lin, build-mac]
+    needs: [build-lin, build-win, build-mac]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
