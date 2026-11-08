@@ -12,7 +12,7 @@
   "manualUrl": "https://github.com/fikster/FikAudio/blob/main/docs/Paulstretch-Manual.pdf",
   "sourceUrl": "https://github.com/fikster/FikAudio",
   "donateUrl": "",
-  "changelogUrl": "",
+  "changelogUrl": "https://github.com/fikster/FikAudio/blob/main/CHANGELOG.md",
   "minRackVersion": "2.4.0",
   "modules": [
     {
