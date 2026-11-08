@@ -20,7 +20,22 @@ struct AudioFileData {
     bool isFloat = false;
 };
 
+#if defined ARCH_WIN
+#include <rack.hpp>  // for string::UTF8toUTF16
+#endif
+
 namespace audiofile {
+
+// Opens a file by its UTF-8 path, as Rack gives paths. On Windows, fopen reads
+// the path in the local code page, so file names with other characters need
+// _wfopen.
+inline FILE* openFile(const std::string& path, const char* mode) {
+#if defined ARCH_WIN
+    return _wfopen(rack::string::UTF8toUTF16(path).c_str(), rack::string::UTF8toUTF16(mode).c_str());
+#else
+    return std::fopen(path.c_str(), mode);
+#endif
+}
 
 inline uint32_t le32(const uint8_t* p) { return p[0] | p[1] << 8 | p[2] << 16 | (uint32_t)p[3] << 24; }
 inline uint16_t le16(const uint8_t* p) { return p[0] | p[1] << 8; }
@@ -169,7 +184,7 @@ inline bool parseAiff(FILE* file, int64_t fileSize, bool aifc, Format& f, std::s
 // Reads at most `maxSeconds` of audio.
 inline bool readAudioFile(const std::string& path, double maxSeconds, AudioFileData& out, std::string& error) {
     using namespace audiofile;
-    FILE* file = std::fopen(path.c_str(), "rb");
+    FILE* file = audiofile::openFile(path, "rb");
     if (!file) {
         error = "can't open the file";
         return false;
@@ -250,7 +265,7 @@ inline bool writeWavFile(const std::string& path, const AudioFileData& data, std
         error = "nothing to write, or too long for a WAV file";
         return false;
     }
-    FILE* file = std::fopen(path.c_str(), "wb");
+    FILE* file = audiofile::openFile(path, "wb");
     if (!file) {
         error = "can't create the file";
         return false;

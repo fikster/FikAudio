@@ -506,7 +506,7 @@ struct Paulstretch : Module {
         }
         if (savedLength <= 0 || savedRate <= 0.f) return;
         const std::string path = system::join(getPatchStorageDirectory(), RECORDING_FILE);
-        FILE* f = std::fopen(path.c_str(), "rb");
+        FILE* f = audiofile::openFile(path, "rb");
         if (!f) {
             WARN("Paulstretch: recording file %s is missing", path.c_str());
             return;
@@ -539,7 +539,7 @@ struct Paulstretch : Module {
             return;
         }
         if (!dirty && system::isFile(path)) return;
-        FILE* f = std::fopen(path.c_str(), "wb");
+        FILE* f = audiofile::openFile(path, "wb");
         if (!f) {
             WARN("Paulstretch: can't write %s", path.c_str());
             return;
