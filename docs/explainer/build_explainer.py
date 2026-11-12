@@ -53,8 +53,21 @@ class Heading(Flowable):
 
 
 def fig(name, width):
-    path = os.path.join(FIG, name + ".png")
-    w, h = PILImage.open(path).size
+    """A figure, reduced to a 256-colour palette on white. That halves the PDF
+    (reportlab stores a full-colour PNG as raw RGB plus a transparency mask)
+    with no visible change. Near-white colours are snapped to pure white so the
+    figure doesn't sit in a faint grey box."""
+    src = PILImage.open(os.path.join(FIG, name + ".png")).convert("RGBA")
+    w, h = src.size
+    flat = PILImage.new("RGB", src.size, (255, 255, 255))
+    flat.paste(src, mask=src.split()[3])
+    small = flat.quantize(256, method=PILImage.Quantize.FASTOCTREE, dither=PILImage.Dither.NONE)
+    pal = small.getpalette()
+    for i in range(0, len(pal), 3):
+        if min(pal[i:i + 3]) >= 246: pal[i:i + 3] = [255, 255, 255]
+    small.putpalette(pal)
+    path = os.path.join(FIG, name + "-small.png")
+    small.save(path, optimize=True)
     return Image(path, width=width, height=width * h / w)
 
 
